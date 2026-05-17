@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rentals Management – North Coast 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f4f3ef;
+  --surface:#ffffff;
+  --surface2:#eeede8;
+  --border:rgba(0,0,0,0.08);
+  --border-md:rgba(0,0,0,0.13);
+  --text:#181816;
+  --muted:#6b6b64;
+  --hint:#a0a098;
+  --green:#1a6b42;
+  --green-bg:#e6f4ed;
+  --green-text:#0f5233;
+  --red:#b53030;
+  --red-bg:#fdeaea;
+  --red-text:#922020;
+  --blue:#1a5fa8;
+  --blue-bg:#e8f0fb;
+  --blue-text:#144d90;
+  --radius:10px;
+  --radius-lg:14px;
+}
+
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#191917;
+    --surface:#222220;
+    --surface2:#2b2b28;
+    --border:rgba(255,255,255,0.08);
+    --border-md:rgba(255,255,255,0.14);
+    --text:#f0efe9;
+    --muted:#9e9e96;
+    --hint:#6b6b64;
+    --green:#3ecf8e;
+    --green-bg:#0d3d26;
+    --green-text:#52dba0;
+    --red:#f07070;
+    --red-bg:#3d1010;
+    --red-text:#f49090;
+    --blue:#5da8f5;
+    --blue-bg:#0c2d50;
+    --blue-text:#7bbcf7;
+  }
+}
+
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:15px}
+
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:100;gap:12px}
+.logo{font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px}
+.logo-dot{width:11px;height:11px;border-radius:50%;background:var(--green)}
+.season-badge{font-size:13px;font-weight:500;padding:5px 14px;border-radius:20px;background:var(--blue-bg);color:var(--blue-text);white-space:nowrap}
+
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;color:var(--muted)}
+.spinner{width:36px;height:36px;border:3px solid var(--border-md);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.stats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--surface2);border-radius:var(--radius);padding:0.75rem 1rem;flex:1;min-width:90px}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em}
+.stat-value{font-size:26px;font-weight:600;color:var(--text)}
+
+.controls{padding:0.9rem 1.5rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:62px;z-index:99}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--hint);font-size:16px;pointer-events:none}
+.search-wrap input,.controls select{height:42px;border:1px solid var(--border-md);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;transition:border-color 0.15s}
+.search-wrap input{width:100%;padding:0 12px 0 34px}
+.search-wrap input:focus,.controls select:focus{border-color:var(--green)}
+.controls select{padding:0 12px;cursor:pointer}
+.refresh-btn{height:42px;padding:0 18px;border:1px solid var(--border-md);border-radius:var(--radius);font-size:14px;font-family:inherit;background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.refresh-btn:hover{border-color:var(--green);color:var(--green)}
+.showing{margin-left:auto;font-size:14px;color:var(--muted);white-space:nowrap}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:1.5rem}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s}
+.card:hover{border-color:var(--border-md);box-shadow:0 4px 18px rgba(0,0,0,0.07)}
+
+.card-head{padding:1.1rem 1.2rem 0.85rem;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-name{font-size:17px;font-weight:600;color:var(--text)}
+.card-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.avail-badge{flex-shrink:0;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;white-space:nowrap}
+.avail-has{background:var(--green-bg);color:var(--green-text)}
+.avail-loading{background:var(--surface2);color:var(--muted)}
+
+.cal-wrap{padding:0 1.2rem 1rem;border-top:1px solid var(--border)}
+.cal-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;padding:0.75rem 0 0.5rem}
+.cal-months{display:flex;flex-direction:column;gap:10px}
+.cal-month-name{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:6px}
+.cal-days{display:flex;flex-wrap:wrap;gap:3px}
+.day{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:default}
+.day-available{background:var(--green-bg);color:var(--green-text)}
+.day-booked{background:var(--red-bg);color:var(--red-text)}
+.day-unknown{background:var(--surface2);color:var(--hint)}
+
+.legend{display:flex;gap:14px;padding:0 0 0.5rem;flex-wrap:wrap;margin-top:8px}
+.leg{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.leg-dot{width:11px;height:11px;border-radius:3px}
+.leg-av{background:var(--green-bg);border:1px solid var(--green)}
+.leg-bk{background:var(--red-bg);border:1px solid var(--red)}
+
+.card-desc{padding:0 1.2rem 0.9rem;border-top:1px solid var(--border)}
+.desc-ar{font-size:14px;color:var(--muted);line-height:1.8;direction:rtl;text-align:right;margin-top:0.75rem}
+.desc-ar.collapsed{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.toggle-btn{background:none;border:none;cursor:pointer;font-size:13px;color:var(--blue);font-family:inherit;padding:4px 0 0;display:block}
+
+.empty{grid-column:1/-1;text-align:center;padding:4rem 1rem;color:var(--muted);font-size:15px}
+footer{text-align:center;padding:2rem;font-size:13px;color:var(--hint);border-top:1px solid var(--border);margin-top:1rem}
+
+@media(max-width:540px){
+  .topbar{padding:0 1rem;height:56px}
+  .controls{padding:0.75rem 1rem;top:56px}
+  .stats-bar{padding:0.75rem 1rem}
+  .grid{padding:1rem;gap:10px;grid-template-columns:1fr}
+  .stat-value{font-size:22px}
+  .showing{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo"><div class="logo-dot"></div>Rentals Management</div>
+  <span class="season-badge">موسم 2026 · North Coast</span>
+</header>
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <span>Loading properties from sheet…</span>
+</div>
+
+<div id="app" style="display:none">
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-label">Total units</div><div class="stat-value" id="s-total">–</div></div>
+    <div class="stat"><div class="stat-label">Has availability</div><div class="stat-value" id="s-avail">–</div></div>
+    <div class="stat"><div class="stat-label">Showing</div><div class="stat-value" id="s-showing">–</div></div>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="Search units…" autocomplete="off">
+    </div>
+    <select id="f-avail">
+      <option value="">All units</option>
+      <option value="available">Has availability</option>
+    </select>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+    <div class="showing">Showing <strong id="showing-count">–</strong> units</div>
+  </div>
+
+  <main class="grid" id="grid"></main>
+</div>
+
+<footer>Rentals Management · North Coast Egypt · Season May 25 – Sep 25, 2026</footer>
+
+<script>
+const API_URL = `https://script.google.com/macros/s/AKfycbzVdVi3ZX9TngvuhRy9IdfhB9cJ1L0AIY_RNNGVDvnvTe9YvWDNyGs1w-_7Mbl_elDr/exec`;
+
+const BOOKED    = 'محجوز';
+const AVAILABLE = 'متاح';
+
+// tab   = exact Google Sheet tab name (used for API fetch)
+// label = display name on the card (optional — defaults to tab if omitted)
+// desc  = Arabic description
+const UNITS = [
+  { tab:'Mera 4',     desc:'ستوديو دور تاني باسانسير دبل فيو علي اتنين بول مكيف بالكامل فرش Vip فيه 2 سرير و 2 كنبه بتفتح سرير' },
+
+  { tab:'Regal 42',   desc:'غرفتين 2 حمام دور تالت باسانسير بروف مكيف بالكامل فيو بول مباشره لوكيشن مميز بحرى صريح' },
+  { tab:'Regal 17',   desc:'غرفتين وغرفه ناني و 2 حمام معاه اتنين جاردن مميزه مرحله اولي لوكيشن مميز علي البول مكيف بالكامل ماعدا الناني' },
+  { tab:'Regal 20',   desc:'غرفتين مكيف بالكامل دبل فيو علي 2 بول مباشره مرحله اولي بحرى صريح لوكيشن مميز دور تالت باسانسير' },
+  { tab:'Regal 2',    desc:'غرفتين علوي دور مكيف بالكامل فرش فندقي فاخر اول صف شاليهات بعد الفلل أقرب شاليه للبحر' },
+  { tab:'Vega 10',    desc:'غرفتين ارضي اول سنه إيجار مميز جدا فرش راقي علي اعلي مستوى ومكيف بالكامل' },
+  { tab:'Vega 10_3',  label:'Vega 10 3', desc:'فيجا غرفتين وحمام مكيف بالكامل اميز لوكيشن اول صف شاليهات بعد الفلل واقرب شاليه للبحر فيو بول مباشره دور تالت باسانسير ومعاه روف مجهز بقعده مميزه وشوايه' },
+  { tab:'Bianca 13',  desc:'شاليه علي اعلي مستوى واول سنه إيجار دور تاني باسانسير مكيف بالكامل فيو بول مباشره لوكيشن مميز بحرى صريح' },
+
+  { tab:'Vega 9',     desc:'شاليه 3 غرف 2 حمام دور اول اول صف شاليهات بعد الفلل واقرب شاليه للبحر مكيف بالكامل بحرى صريح فيو بسين مباشره امام مركز تجمع الجولف كار مرحله اولي اميز لوكيشن في القريه' },
+  { tab:'Vega 8',     desc:'شاليه ٣ غرف بحري دور تالت بأسانسير مكيف غرف فقط و الرسيبشن مروحة' },
+  { tab:'Regal 8',    desc:'٣ غرف منهم غرفة ماستر ارضي اتنين جاردن مكيف و مجهز بالكامل ڤيو بيسين من الاتنين جاردن' },
+
+  { tab:'Star 49',    desc:'ڤيلا ستار ٣ غرف ٤ حمامات مكيفة و مجهزة بالكامل ڤيو بيسين دقايق للبحر' },
+  { tab:'Capella 37', desc:'كابيلا 3 غرف 4 حمام مرحله اولي قريبه من البيتش جاردن مميزه واسعه باطلاله علي البول مباشره 7 سراير مكيفه بالكامل' },
+  { tab:'Star 52',    desc:'ڤيلا ستار ٣ غرف ٤ حمامات مكيفة و مجهزة بالكامل ڤيو بيسين دقايق للبحر' },
+
+  { tab:'Alfred 38',  desc:'فيلا 5 غرف 6 حمامات مكيفه بالكامل محتويات 11 سرير أقرب فيلا الفريد للبحر لوكيشن مميز بينها وبين البيتش ثواني جانبيه علي البول جاردن كبيره مميزه' },
+  { tab:'Alpha 6',    desc:'فيلا ألفا 6 غرف و 7 حمام جاردن 700 متر رؤويه كامله للبحر مباشره مكيفه بالكامل مع برايفت بول وجاردن أوت دور' },
+];
+
+// ── DATE HELPERS ──────────────────────────────────────────────────────────────
+function parseLocalDate(str) {
+  const s = String(str).trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
+
+function dateKey(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function allSeasonDates() {
+  const dates = [];
+  const d = parseLocalDate('2026-05-25');
+  const end = parseLocalDate('2026-09-25');
+  while (d <= end) { dates.push(new Date(d)); d.setDate(d.getDate() + 1); }
+  return dates;
+}
+
+// ── FETCH ─────────────────────────────────────────────────────────────────────
+async function fetchTab(tabName) {
+  const url = `${API_URL}?sheet=${encodeURIComponent(tabName)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+function makeState() {
+  return UNITS.map((u, i) => ({
+    id: i,
+    tab: u.tab,
+    label: u.label || u.tab,
+    desc: u.desc,
+    statusMap: {},
+    loaded: false,
+    error: false,
+    errorMsg: ''
+  }));
+}
+
+let unitsData = makeState();
+const expanded = new Set(); // numeric IDs
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
+async function loadUnit(unit, idx) {
+  try {
+    const rows = await fetchTab(unit.tab);
+    const statusMap = {};
+    for (const row of rows) {
+      if (row.date && row.status) {
+        const d = parseLocalDate(row.date);
+        if (d) statusMap[dateKey(d)] = String(row.status).trim();
+      }
+    }
+    unitsData[idx].statusMap = statusMap;
+    unitsData[idx].loaded = true;
+    unitsData[idx].error = false;
+  } catch(e) {
+    console.error(unit.tab, e);
+    unitsData[idx].loaded = true;
+    unitsData[idx].error = true;
+    unitsData[idx].errorMsg = e.message || String(e);
+  }
+  render();
+}
+
+async function loadAll() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  unitsData = makeState();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  render();
+  await Promise.all(unitsData.map((u, i) => loadUnit(u, i)));
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────────
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function buildCalendar(statusMap) {
+  const dates = allSeasonDates();
+  const months = {};
+  for (const d of dates) {
+    const mk = d.getFullYear() + '-' + d.getMonth();
+    if (!months[mk]) months[mk] = { label: MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear(), days: [] };
+    months[mk].days.push(d);
+  }
+  let html = '<div class="cal-months">';
+  for (const mk of Object.keys(months)) {
+    const { label, days } = months[mk];
+    html += `<div class="cal-month"><div class="cal-month-name">${label}</div><div class="cal-days">`;
+    for (const d of days) {
+      const key = dateKey(d);
+      const status = statusMap[key];
+      let cls = 'day-unknown', tip = 'غير محدد';
+      if (status === AVAILABLE) { cls = 'day-available'; tip = 'متاح'; }
+      else if (status === BOOKED) { cls = 'day-booked'; tip = 'محجوز'; }
+      html += `<div class="day ${cls}" title="${d.getDate()} ${label} - ${tip}">${d.getDate()}</div>`;
+    }
+    html += '</div></div>';
+  }
+  return html + '</div>';
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function countAvailable(statusMap) {
+  return Object.values(statusMap).filter(s => s === AVAILABLE).length;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const q  = (document.getElementById('search') || { value: '' }).value.toLowerCase().trim();
+  const fa = (document.getElementById('f-avail') || { value: '' }).value;
+
+  const filtered = unitsData.filter(u => {
+    if (q && !u.label.toLowerCase().includes(q) && !u.tab.toLowerCase().includes(q)) return false;
+    if (fa === 'available' && countAvailable(u.statusMap) === 0) return false;
+    return true;
+  });
+
+  const totalAvail = unitsData.filter(u => countAvailable(u.statusMap) > 0).length;
+  const st = id => document.getElementById(id);
+  if (st('s-total'))       st('s-total').textContent       = unitsData.length;
+  if (st('s-avail'))       st('s-avail').textContent       = totalAvail;
+  if (st('s-showing'))     st('s-showing').textContent     = filtered.length;
+  if (st('showing-count')) st('showing-count').textContent = filtered.length;
+
+  const grid = document.getElementById('grid');
+  if (!grid) return;
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">No units match your filters.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(u => {
+    const avCount = countAvailable(u.statusMap);
+    const isExp   = expanded.has(u.id);
+    let badgeCls = 'avail-loading', badgeTxt = 'جاري التحميل…';
+    if (u.loaded && u.error)          { badgeCls = 'avail-loading'; badgeTxt = 'خطأ في التحميل'; }
+    else if (u.loaded && avCount > 0) { badgeCls = 'avail-has';     badgeTxt = `${avCount} يوم متاح`; }
+    else if (u.loaded)                { badgeCls = '';               badgeTxt = ''; }
+
+    return `
+    <article class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-name">${u.label}</div>
+          <div class="card-sub">موسم 2026 · ${u.loaded ? (u.error ? '–' : `${Object.keys(u.statusMap).length} يوم مسجل`) : 'جاري التحميل'}</div>
+        </div>
+        <span class="avail-badge ${badgeCls}">${badgeTxt}</span>
+      </div>
+
+      ${u.loaded && !u.error
+        ? `<div class="cal-wrap">
+             <div class="cal-title">التقويم · مايو ٢٥ – سبتمبر ٢٥</div>
+             ${buildCalendar(u.statusMap)}
+             <div class="legend">
+               <div class="leg"><div class="leg-dot leg-av"></div>متاح</div>
+               <div class="leg"><div class="leg-dot leg-bk"></div>محجوز</div>
+             </div>
+           </div>`
+        : u.loaded && u.error
+          ? `<div style="padding:0.75rem 1.2rem;font-size:14px;color:var(--red-text)">
+               تعذّر تحميل البيانات.<br>
+               <span style="font-size:11px;opacity:0.75;word-break:break-all">${u.errorMsg}</span>
+             </div>`
+          : `<div style="padding:0.75rem 1.2rem;font-size:14px;color:var(--muted)">جاري التحميل…</div>`}
+
+      <div class="card-desc">
+        <div class="desc-ar ${isExp ? '' : 'collapsed'}" id="desc-${u.id}">${u.desc}</div>
+        <button class="toggle-btn" onclick="toggleDesc(${u.id})">${isExp ? '▲ أقل' : '▼ المزيد'}</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function toggleDesc(id) {
+  expanded.has(id) ? expanded.delete(id) : expanded.add(id);
+  render();
+}
+
+['search', 'f-avail'].forEach(elmId => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById(elmId);
+    if (el) { el.addEventListener('input', render); el.addEventListener('change', render); }
+  });
+});
+
+window.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>
